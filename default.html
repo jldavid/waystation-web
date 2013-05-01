@@ -1,0 +1,87 @@
+<!--// <div id="map3d" style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"></div> //-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>Waystation - Connecting Terranauts & Astronauts</title>
+    <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+   <script type="text/javascript">
+    var ge;
+    
+    google.load("earth", "1");
+    
+    function init() {
+      google.earth.createInstance('map3d', initCallback, failureCallback);
+    }
+    
+    function initCallback(instance) {
+      ge = instance;
+      ge.getWindow().setVisibility(true);
+      ge.getOptions().setFlyToSpeed(4); 
+      google.earth.addEventListener(ge, "frameend", rotateEarth); 
+      fetchKmlFromInput();
+    }
+
+    var speed =  10;  // degrees per second 
+    var lastMillis = (new Date()).getTime(); 
+
+
+function rotateEarth() {
+        var now = (new Date()).getTime();
+        var delta = (now - lastMillisecond) / 1000.0;
+        lastMillisecond = now;
+
+        var lookAt = ge.getView().copyAsLookAt(ge.ALTITUDE_RELATIVE_TO_GROUND);
+        lookAt.setLongitude(lookAt.getLongitude() + speed * delta);
+        lookAt.setRange(1);
+        lookAt.setHeading(0);
+        ge.getView().setAbstractView(lookAt);
+    }
+
+    function failureCallback(errorCode) {
+    }
+    
+    var currentKmlObject = null;
+    
+    function fetchKmlFromInput() {
+      // remove the old KML object if it exists
+      if (currentKmlObject) {
+        ge.getFeatures().removeChild(currentKmlObject);
+        currentKmlObject = null;
+      }
+    
+      var kmlUrlBox = document.getElementById('kml-url');
+      var kmlUrl = "http://www.stormpixel.com/waystation/waystation.kml";
+    
+      google.earth.fetchKml(ge, kmlUrl, finishFetchKml);
+    }
+    
+    function finishFetchKml(kmlObject) {
+      // check if the KML was fetched properly
+      if (kmlObject) {
+        // add the fetched KML to Earth
+        currentKmlObject = kmlObject;
+        ge.getFeatures().appendChild(currentKmlObject);
+      } else {
+        // wrap alerts in API callbacks and event handlers
+        // in a setTimeout to prevent deadlock in some browsers
+        setTimeout(function() {
+          alert('Bad or null KML.');
+        }, 0);
+      }
+    }
+    
+    function buttonClick() {
+      fetchKmlFromInput();
+    }
+    
+    </script>
+  </head>
+  <body onload="init()" style="font-family: arial, sans-serif; font-size: 13px; border: 0;">
+    <div id="sample-ui"></div>
+    <div id="map3d"  style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"></div>
+    <br>
+  </body>
+</html>
+
+
